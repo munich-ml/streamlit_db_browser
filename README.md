@@ -39,7 +39,7 @@ HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 ENTRYPOINT ["streamlit", "run", "simple_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
 ```
 
-### Problem udating docker build
+### Problem updating docker build
 When rebuilding a docker image from the same Dockerfile (e.g. because the .git source was updated) the following error occured:
 
 ```
@@ -58,5 +58,16 @@ http://192.168.178.50:8765/
 ```
 The external port `8765` is mapped to `8501` within the container (see Dockerfile).
 
-## Ongoing
-https://github.com/Franky1/Streamlit-Template/
+## Franky1's streamlit-template
+Maybe worth trying: https://github.com/Franky1/Streamlit-Template/
+
+## Putting the Dockerfile into the Github repo
+The [Streamlit Docker tutorial](https://docs.streamlit.io/deploy/tutorials/docker) I used above clones the source using `RUN git clone` from within the Dockerfile. Now that I put the Dockerfile into my repo, I replaced that by `COPY . .`:
+
+```Dockerfile
+# RUN git clone https://github.com/munich-ml/streamlit_db_browser.git . 
+COPY . .
+```
+
+# Moving to Raspi 
+next step
