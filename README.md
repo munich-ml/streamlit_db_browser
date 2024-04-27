@@ -9,7 +9,8 @@ Notebook of my first contact with Docker
 - I followed the [Streamlit Docker tutorial](https://docs.streamlit.io/deploy/tutorials/docker).
 
 ## Docker steps: `build` and `run`
-![Image_Docker_Image_Container](https://jfrog--c.documentforce.com/servlet/servlet.ImageServer?id=01569000008kqFT&oid=00D20000000M3v0&lastMod=1631619825000)
+<img src="https://jfrog--c.documentforce.com/servlet/servlet.ImageServer?id=01569000008kqFT&oid=00D20000000M3v0&lastMod=1631619825000" width="600"/>
+
 1. `docker build -t IMAGE_TAG_NAME .` creates a __docker image__ from the `Dockerfile`.
 2. `docker run IMAGE_TAG_NAME` runs the an instance of the docker image, called a  __docker container__.
 
