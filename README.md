@@ -1,8 +1,43 @@
-# streamlit_db_browser
-Streamlit web-app for browsing an InfluxDB database
+# Database browser app
+This web-app allows browsing and exploring data from __[InfluxDB](https://www.influxdata.com/)__ database. It is realised using __[Streamlit](https://streamlit.io/)__ and runs from __[Docker](https://www.docker.com/)__ on a Raspberry pi. Example query:
+![](imgs/app_screenshot.png)
 
 
-# My Docker journey
+
+# Moving docker to the Raspi 
+__Prerequisite__: Install Docker on the Raspi acc. to: [Docker installation on Debian](https://docs.docker.com/engine/install/debian/)
+
+1. __Update__ source from within the cloned project directory (e.g. `~/Desktop/streamlit_db_browser`):
+   ```
+   $ git pull
+   ```
+   
+2. __Build__ the docker image and tag it with `streamlit-db-browser`:
+   ```
+   $ sudo docker build -t streamlit-db-browser .
+   ```
+
+3. __Run__ the `streamlit-db-browser` image as a container and expose the port `8501` 
+   ```
+   $ sudo docker run --rm -p 8501:8501 streamlit-db-browser
+   ```
+
+Afterwards, the app is available at `http://192.168.XXX.XXX:8501/`.
+
+On the Raspi, containers an images can be inspected using docker commands such as: 
+```
+$ sudo docker ps
+CONTAINER ID   IMAGE                  COMMAND                  STATUS                    PORTS                    NAMES
+7b3ad304804f   streamlit-db-browser   "streamlit run strea…"   Up 32 minutes (healthy)   0.0.0.0:8501->8501/tcp   lucid_dijkstra
+...
+
+$ sudo docker images
+REPOSITORY             TAG       IMAGE ID       CREATED          SIZE
+streamlit-db-browser   latest    bbc83ac40de9   34 minutes ago   984MB
+...
+```
+
+# Appendix: My Docker journey
 Notebook of my first contact with Docker
 
 - For testing docker on windows I installed [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/wsl/).
@@ -68,11 +103,4 @@ The [Streamlit Docker tutorial](https://docs.streamlit.io/deploy/tutorials/docke
 ```Dockerfile
 # RUN git clone https://github.com/munich-ml/streamlit_db_browser.git . 
 COPY . .
-```
-
-# Moving to Raspi 
-[Docker installation on Debian](https://docs.docker.com/engine/install/debian/)
-
-```
-pi@pi6:~/Desktop/streamlit_db_browser $ sudo docker build -t streamlit-db-browser .
 ```
