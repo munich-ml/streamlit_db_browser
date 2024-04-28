@@ -1,0 +1,3 @@
+entity = "shelly_uni2_temperature"
+unit = "°C"
+name = None
