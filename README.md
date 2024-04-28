@@ -72,3 +72,7 @@ COPY . .
 
 # Moving to Raspi 
 [Docker installation on Debian](https://docs.docker.com/engine/install/debian/)
+
+```
+pi@pi6:~/Desktop/streamlit_db_browser $ sudo docker build -t streamlit-db-browser .
+```
