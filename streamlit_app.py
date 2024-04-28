@@ -3,9 +3,6 @@ import datetime as dt
 import streamlit as st
 from ruamel.yaml import YAML
 from influxdb import InfluxDBClient
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import numpy as np
     
 
 st.header("Database explorer", divider="green")
