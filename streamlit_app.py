@@ -1,8 +1,34 @@
 import pandas as pd
 import datetime as dt
 import streamlit as st
+from dataclasses import dataclass, field
 from ruamel.yaml import YAML
 from influxdb import InfluxDBClient
+    
+    
+@dataclass
+class Trace:
+    """Entity time series (xs and ys) with meta data (name, unit,...)
+    """
+    entity: str
+    unit: str
+    name: str = ""
+    is_cumsum: bool = False
+    is_diff: bool = False
+    xs: list = field(default_factory=list, compare=False, hash=False, repr=False)
+    ys: list = field(default_factory=list, compare=False, hash=False, repr=False)
+    
+    def get_label(self) -> str:
+        """Returns a trace label like 'garden temperature (°C)'
+        """
+        label = self.name if self.name else self.entity
+        
+        if self.is_cumsum:
+            label += ".cumsum"
+        if self.is_diff:
+            label += ".diff"
+
+        return label + f" ({self.unit})"
     
 
 st.header("Database explorer", divider="green")
@@ -80,15 +106,35 @@ try:
     st.divider()
 
     # query the data
-    df = pd.DataFrame.from_records(client.query(qstr).get_points()).set_index("time")
-    df.columns = [st.session_state["selected_entity_id"]]
+    df = pd.DataFrame.from_records(client.query(qstr).get_points())
+    df.columns = ["time", st.session_state["selected_entity_id"]]
     
     # preview data
-    st.scatter_chart(df)
-    
-    st.dataframe(df.tail(5))
+    list_col, plot_col = st.columns(2)
+    list_col.write("### Preview")
+    list_col.dataframe(df.set_index("time").head(5))
+    plot_col.scatter_chart(df.set_index("time"))
+
+    # traces
+    st.subheader("Traces", divider="blue")
+    if "traces" not in st.session_state:
+        st.session_state["traces"] = dict()
+        
+    if st.button("add this trace"):    
+        trace = Trace(entity=st.session_state["selected_entity_id"], unit=selected_unit,
+                    xs=df.values[:, 0], ys=df.values[:, 1])
+        
+        if selected_unit not in st.session_state["traces"]:
+            st.session_state["traces"][selected_unit] = list()
+            
+        st.session_state["traces"][selected_unit].append(trace)
+        
+
+    if st.button("delete all traces", type="primary"):
+        st.session_state["traces"] = dict()
     
     st.divider()
+
 
     "session_state:", st.session_state
 
