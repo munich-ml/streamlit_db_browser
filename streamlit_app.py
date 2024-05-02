@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime as dt
 import streamlit as st
+import plotly.graph_objects as go
 from dataclasses import dataclass, field
 from ruamel.yaml import YAML
 from influxdb import InfluxDBClient
@@ -31,7 +32,7 @@ class Trace:
         return label + f" ({self.unit})"
     
 
-st.header("Database explorer", divider="green")
+st.header("Database explorer", divider="red")
 
 with open("secrets.yaml", "r") as file:
     secrets = YAML().load(file)
@@ -103,8 +104,7 @@ try:
                AND time >= '{start_string}'
                AND time < '{stop_string}'"""
     st.code(qstr, language="sql")    
-    st.divider()
-
+    
     # query the data
     df = pd.DataFrame.from_records(client.query(qstr).get_points())
     df.columns = ["time", st.session_state["selected_entity_id"]]
@@ -132,6 +132,15 @@ try:
 
     if st.button("delete all traces", type="primary"):
         st.session_state["traces"] = dict()
+    
+    
+    for unit, traces in st.session_state["traces"].items():
+        fig = go.Figure()
+        for trace in traces:
+            fig.add_trace(go.Scatter(x=trace.xs, y=trace.ys, mode='lines', 
+                                     showlegend=True, name=trace.entity))
+        fig.update_layout(yaxis_title=unit)
+        st.plotly_chart(fig, use_container_width=True)
     
     st.divider()
 
