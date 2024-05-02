@@ -2,7 +2,15 @@
 This web-app allows browsing and exploring data from __[InfluxDB](https://www.influxdata.com/)__ database. It is realised using __[Streamlit](https://streamlit.io/)__ and runs from __[Docker](https://www.docker.com/)__ on a Raspberry pi. Example query:
 ![](imgs/app_screenshot.png)
 
-
+# ToDos
+- Date select buttons for year, month, week, day
+- bug with special characters like `pending\ update(s)`
+- Trace handler class
+  - delete individual traces from pulldown
+  - download traces
+- cumsum + diff function
+  - leads to different units like `kW *time`, `kW /time`
+- plotly selector `lines`, `markers` or `lines+markers`
 
 # Moving docker to the Raspi 
 __Prerequisite__: Install Docker on the Raspi acc. to: [Docker installation on Debian](https://docs.docker.com/engine/install/debian/)
