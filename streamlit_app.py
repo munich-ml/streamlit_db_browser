@@ -67,6 +67,7 @@ try:
     st.write(f"There are {len(entities)} entities available in {database}:")
     st.dataframe(entities, height=200)
 
+    # Query
     st.subheader(f"Query", divider="blue")
     unit_col, entity_col = st.columns([1, 2])
 
@@ -142,9 +143,8 @@ try:
         fig.update_layout(yaxis_title=unit)
         st.plotly_chart(fig, use_container_width=True)
     
-    st.divider()
-
-
+       
+    st.subheader(f"Inside streamlit_db_browser", divider="blue")
     "session_state:", st.session_state
 
 

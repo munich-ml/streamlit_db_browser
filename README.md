@@ -11,6 +11,7 @@ This web-app allows browsing and exploring data from __[InfluxDB](https://www.in
 - cumsum + diff function
   - leads to different units like `kW *time`, `kW /time`
 - plotly selector `lines`, `markers` or `lines+markers`
+- apply black-list for entities that are discontinoued
 
 # Moving docker to the Raspi 
 __Prerequisite__: Install Docker on the Raspi acc. to: [Docker installation on Debian](https://docs.docker.com/engine/install/debian/)
