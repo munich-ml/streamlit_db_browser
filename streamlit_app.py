@@ -89,11 +89,30 @@ try:
         if key not in st.session_state:
             st.session_state[key] = dt.time(0)
     
-    cols = st.columns([3, 2, 3, 2])
+
+    def set_one_year():
+        st.session_state.start_date = st.session_state.stop_date - dt.timedelta(days=365)
+        
+    def set_one_month():
+        st.session_state.start_date = st.session_state.stop_date - dt.timedelta(days=30)
+        
+    def set_one_week():
+        st.session_state.start_date = st.session_state.stop_date - dt.timedelta(days=7)
+        
+    def set_one_day():
+        st.session_state.start_date = st.session_state.stop_date - dt.timedelta(days=1)
+        
+             
+    cols = st.columns([3, 3, 1, 1, 1, 1, 3, 3])
     cols[0].date_input("start date", key="start_date")
     cols[1].time_input("start time", key="start_time")
-    cols[2].date_input("stop date", key="stop_date")
-    cols[3].time_input("stop time", key="stop_time")
+    cols[2].button("1Y", on_click=set_one_year, help="set start date one year before stop date")
+    cols[3].button("1M", on_click=set_one_month, help="set start date one month before stop date")
+    cols[4].button("1W", on_click=set_one_week, help="set start date one week before stop date")
+    cols[5].button("1D", on_click=set_one_day, help="set start date one day before stop date")
+    cols[6].date_input("stop date", key="stop_date")
+    cols[7].time_input("stop time", key="stop_time")
+    
     
     # build query string
     RFC3339_FORMAT = '%Y-%m-%dT%H:%M:%S.00000000Z'
@@ -108,27 +127,32 @@ try:
     
     # query the data
     df = pd.DataFrame.from_records(client.query(qstr).get_points())
-    df.columns = ["time", st.session_state["selected_entity_id"]]
+    if len(df):
+        df.columns = ["time", st.session_state["selected_entity_id"]]
     
     # preview data
     list_col, plot_col = st.columns(2)
-    list_col.write("### Preview")
-    list_col.dataframe(df.set_index("time").head(5))
-    plot_col.scatter_chart(df.set_index("time"))
+    if len(df):
+        list_col.write(f"Preview {len(df)} points")
+        list_col.dataframe(df.set_index("time").head())
+        plot_col.scatter_chart(df.set_index("time"))
+    else:
+        list_col.write("Empty, nothing to preview!")
 
     # traces
     st.subheader("Traces", divider="blue")
     if "traces" not in st.session_state:
         st.session_state["traces"] = dict()
         
-    if st.button("add this trace"):    
-        trace = Trace(entity=st.session_state["selected_entity_id"], unit=selected_unit,
-                    xs=df.values[:, 0], ys=df.values[:, 1])
-        
-        if selected_unit not in st.session_state["traces"]:
-            st.session_state["traces"][selected_unit] = list()
+    if st.button("add this trace"):
+        if len(df):    
+            trace = Trace(entity=st.session_state["selected_entity_id"], unit=selected_unit,
+                        xs=df.values[:, 0], ys=df.values[:, 1])
             
-        st.session_state["traces"][selected_unit].append(trace)
+            if selected_unit not in st.session_state["traces"]:
+                st.session_state["traces"][selected_unit] = list()
+                
+            st.session_state["traces"][selected_unit].append(trace)
         
 
     if st.button("delete all traces", type="primary"):

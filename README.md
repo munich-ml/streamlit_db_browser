@@ -3,7 +3,6 @@ This web-app allows browsing and exploring data from __[InfluxDB](https://www.in
 ![](imgs/app_screenshot.png)
 
 # ToDos
-- Date select buttons for year, month, week, day
 - Trace handler class
   - delete individual traces from pulldown
   - download traces
