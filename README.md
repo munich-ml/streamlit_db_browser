@@ -4,14 +4,14 @@ This web-app allows browsing and exploring data from __[InfluxDB](https://www.in
 
 # ToDos
 - Date select buttons for year, month, week, day
-- bug with special characters like `pending\ update(s)`
 - Trace handler class
   - delete individual traces from pulldown
   - download traces
+  - upload traces
 - cumsum + diff function
   - leads to different units like `kW *time`, `kW /time`
 - plotly selector `lines`, `markers` or `lines+markers`
-- apply black-list for entities that are discontinoued
+- clear database from entities that are discontinoued
 
 # Moving docker to the Raspi 
 __Prerequisite__: Install Docker on the Raspi acc. to: [Docker installation on Debian](https://docs.docker.com/engine/install/debian/)

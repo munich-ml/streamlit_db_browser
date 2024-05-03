@@ -54,7 +54,7 @@ try:
 
     # create dataframe of entities
     records = list()
-    for point in ["unit=" + p["key"] for p in client.query("show series").get_points()]:
+    for point in ["unit=" + p["key"].replace("\\", "") for p in client.query("show series").get_points()]:
         # point example: unit=kWh,domain=sensor,entity_id=sma_battery_charge_total
         record = dict()
         for item in point.split(","):
