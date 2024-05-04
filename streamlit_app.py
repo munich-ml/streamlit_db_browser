@@ -32,6 +32,66 @@ class Trace:
         return label + f" ({self.unit})"
     
 
+class TracesHandler():
+    def __init__(self) -> None:
+        if "traces" not in st.session_state:
+            st.session_state["traces"] = list()
+    
+    @staticmethod
+    def json_dumps() -> str:
+        pass
+    
+    @staticmethod
+    def json_loads(json_str) -> None:
+        pass
+    
+    @staticmethod
+    def get_traces_names() -> list:
+        names = list()
+        for idx, trace in enumerate(st.session_state.traces):
+            if trace.name:
+                name = trace.name
+            else:
+                name = trace.entity
+            names.append(f"{idx}. {name}")
+        return names
+        
+    @staticmethod
+    def add_trace(df: pd.DataFrame) -> None:
+        if len(df):    
+            trace = Trace(entity=st.session_state["selected_entity_id"], unit=selected_unit,
+                            xs=df.values[:, 0], ys=df.values[:, 1])
+            st.session_state.traces.append(trace)
+    
+    @staticmethod
+    def get_traces_figures() -> list:
+        """Returns a list of plotly figures sorted by the traces unit
+        """
+        units = set()
+        for trace in st.session_state.traces:
+            units.add(trace.unit)
+        
+        figures = list()
+        for unit in sorted(units):
+            fig = go.Figure()
+            for trace in st.session_state.traces:
+                if trace.unit == unit:
+                    fig.add_trace(go.Scatter(x=trace.xs, y=trace.ys, mode='lines', 
+                                                showlegend=True, name=trace.entity))
+            fig.update_layout(yaxis_title=unit)
+            figures.append(fig)
+        return figures
+            
+    @staticmethod
+    def change_name(idx: int, name) -> None:
+        """Change the name of the trace with the index idx
+        """
+        pass
+    
+
+traces_handler = TracesHandler()
+
+# streamlit app start
 st.header("Database explorer", divider="red")
 
 with open("secrets.yaml", "r") as file:
@@ -141,30 +201,17 @@ try:
 
     # traces
     st.subheader("Traces", divider="blue")
-    if "traces" not in st.session_state:
-        st.session_state["traces"] = dict()
         
     if st.button("add this trace"):
-        if len(df):    
-            trace = Trace(entity=st.session_state["selected_entity_id"], unit=selected_unit,
-                        xs=df.values[:, 0], ys=df.values[:, 1])
-            
-            if selected_unit not in st.session_state["traces"]:
-                st.session_state["traces"][selected_unit] = list()
-                
-            st.session_state["traces"][selected_unit].append(trace)
-        
+        traces_handler.add_trace(df)        
 
     if st.button("delete all traces", type="primary"):
-        st.session_state["traces"] = dict()
+        st.session_state["traces"] = list()
     
+    selected_trace = st.selectbox("traces", traces_handler.get_traces_names())
     
-    for unit, traces in st.session_state["traces"].items():
-        fig = go.Figure()
-        for trace in traces:
-            fig.add_trace(go.Scatter(x=trace.xs, y=trace.ys, mode='lines', 
-                                     showlegend=True, name=trace.entity))
-        fig.update_layout(yaxis_title=unit)
+    # plot
+    for fig in traces_handler.get_traces_figures():
         st.plotly_chart(fig, use_container_width=True)
     
        
