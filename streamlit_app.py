@@ -14,6 +14,7 @@ class Trace:
     entity: str
     unit: str
     name: str = ""
+    line_mode: str = "lines"
     is_cumsum: bool = False
     is_diff: bool = False
     xs: list = field(default_factory=list, compare=False, hash=False, repr=False)
@@ -56,7 +57,7 @@ class TracesHandler():
     def add_trace(df: pd.DataFrame) -> None:
         if len(df):    
             trace = Trace(entity=st.session_state["sel_entity_id"], unit=selected_unit,
-                            xs=df.values[:, 0], ys=df.values[:, 1])
+                          xs=df.values[:, 0], ys=df.values[:, 1])
             st.session_state.traces.append(trace)
     
     @staticmethod
@@ -73,7 +74,7 @@ class TracesHandler():
             for idx, trace in enumerate(st.session_state.traces):
                 if trace.unit == unit:
                     name = f"{idx}. {trace.get_label()}"
-                    fig.add_trace(go.Scatter(x=trace.xs, y=trace.ys, mode='lines', 
+                    fig.add_trace(go.Scatter(x=trace.xs, y=trace.ys, mode=trace.line_mode, 
                                                 showlegend=True, name=name))
             fig.update_layout(yaxis_title=unit)
             figures.append(fig)
@@ -211,11 +212,19 @@ try:
         sel_trace_idx = int(sel_trace_str.split(".")[0])
         sel_trace = st.session_state.traces[sel_trace_idx]
         st.session_state.sel_trace_name = sel_trace.name
-        
         def edit_trace_name():
             sel_trace.name = st.session_state.sel_trace_name
         
         ecol2.text_input("edit trace name", key="sel_trace_name", on_change=edit_trace_name)
+        
+        st.session_state.line_mode = sel_trace.line_mode
+        def edit_line_mode():
+            sel_trace.line_mode = st.session_state.line_mode
+         
+        line_modes = {'lines': 0, 'markers': 1, 'lines+markers': 2}
+        ecol2.selectbox("line mode", options=line_modes.keys(), key="line_mode", 
+                        index=line_modes[sel_trace.line_mode],
+                        on_change=edit_line_mode)
         
         if ecol2.button("delete all traces", type="primary"):
             st.session_state["traces"] = list()
