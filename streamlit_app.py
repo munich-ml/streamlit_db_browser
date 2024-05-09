@@ -81,10 +81,13 @@ class TracesHandler():
         return figures
             
     @staticmethod
-    def change_name(idx: int, name) -> None:
+    def del_trace(idx: int) -> None:
         """Change the name of the trace with the index idx
         """
-        pass
+        try:
+            st.session_state.traces.pop(idx)
+        except IndexError:
+            pass
     
 
 traces_handler = TracesHandler()
@@ -226,7 +229,11 @@ try:
                         index=line_modes[sel_trace.line_mode],
                         on_change=edit_line_mode)
         
-        if ecol2.button("delete all traces", type="primary"):
+        dcol1, dcol2 = ecol2.columns(2)
+        if dcol1.button("delete selected trace", type="primary"):
+            traces_handler.del_trace(sel_trace_idx)
+            st.rerun()
+        if dcol2.button("delete all traces", type="primary"):
             st.session_state["traces"] = list()
 
     ############################################################################################
