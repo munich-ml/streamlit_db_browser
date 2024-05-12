@@ -4,7 +4,6 @@ This web-app allows browsing and exploring data from __[InfluxDB](https://www.in
 
 # ToDos
 - Trace handler class
-  - delete individual traces from pulldown
   - download traces
   - upload traces
 - cumsum + diff function

@@ -1,8 +1,10 @@
+import json, os
 import pandas as pd
 import datetime as dt
 import streamlit as st
 import plotly.graph_objects as go
-from dataclasses import dataclass, field
+from json_encoder_decoder import JsonEnc, JsonDec
+from dataclasses import dataclass, field, asdict
 from ruamel.yaml import YAML
 from influxdb import InfluxDBClient
     
@@ -88,6 +90,21 @@ class TracesHandler():
             st.session_state.traces.pop(idx)
         except IndexError:
             pass
+        
+        
+    @staticmethod
+    def load_traces_from_json() -> None:
+        pass
+    
+    
+    @staticmethod
+    def get_traces_as_json() -> str:
+        traces = [asdict(trace) for trace in st.session_state.traces]
+        obj = {"type": "Streamlit database browser traces file",
+               "version": 1,
+               "content": traces}
+        
+        return json.dumps(obj, cls=JsonEnc)    
     
 
 traces_handler = TracesHandler()
@@ -239,8 +256,21 @@ try:
     ############################################################################################
     # View traces plots
     st.subheader("View traces plots", divider="blue")
+    
+    if upload_obj := st.file_uploader(label="upload traces", type="json", accept_multiple_files=False):
+        trace_dict_list = json.load(upload_obj, cls=JsonDec)["content"]
+        try:
+            for trace_dict in trace_dict_list:
+                trace = Trace(**trace_dict)
+                st.session_state.traces.append(trace)
+        except Exception as e:
+            st.error(f"Exception {e} while appending {trace=}!")
+            
     for fig in traces_handler.get_traces_figures():
         st.plotly_chart(fig, use_container_width=True)
+    
+    st.download_button("download traces", data=traces_handler.get_traces_as_json(), 
+                       file_name="traces.json")
     
     ############################################################################################
     # Inside streamlit_db_browser
