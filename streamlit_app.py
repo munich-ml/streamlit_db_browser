@@ -145,8 +145,8 @@ if __name__ == "__main__":
         entities = pd.DataFrame.from_records(records)
 
         st.subheader(f"Available entities", divider="blue")
-        st.write(f"There are {len(entities)} entities available in {database}:")
-        st.dataframe(entities, height=200)
+        with st.expander(f"There are {len(entities)} entities available in {database}"):
+            st.dataframe(entities, height=200)
 
         ############################################################################################
         # Query entities
@@ -208,19 +208,16 @@ if __name__ == "__main__":
         df = pd.DataFrame.from_records(client.query(qstr).get_points())
         if len(df):
             df.columns = ["time", st.session_state["sel_entity_id"]]
-        
+            if st.button("add to traces"):
+                    traces_handler.add_trace(df)        
+            
         ############################################################################################
         # Preview data
-        st.subheader(f"Preview data", divider="blue")
-        list_col, plot_col = st.columns(2)
         if len(df):
-            list_col.write(f"Preview {len(df)} points")
-            list_col.dataframe(df.set_index("time").head())
-            if list_col.button("add to traces"):
-                traces_handler.add_trace(df)        
-            plot_col.scatter_chart(df.set_index("time"))
-        else:
-            list_col.write("Empty, nothing to preview!")
+            with st.expander(f"Preview {len(df)} points of data"):
+                list_col, plot_col = st.columns(2)
+                list_col.dataframe(df.set_index("time").head(8))
+                plot_col.scatter_chart(df.set_index("time"))
 
         ############################################################################################
         # Edit traces
