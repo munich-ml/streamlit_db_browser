@@ -3,9 +3,6 @@ This web-app allows browsing and exploring data from __[InfluxDB](https://www.in
 ![](imgs/app_screenshot.png)
 
 # ToDos
-- Trace handler class
-  - download traces
-  - upload traces
 - cumsum + diff function
   - leads to different units like `kW *time`, `kW /time`
 - plotly selector `lines`, `markers` or `lines+markers`
