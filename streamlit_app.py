@@ -17,8 +17,6 @@ class Trace:
     unit: str
     name: str = ""
     line_mode: str = "lines"
-    is_cumsum: bool = False
-    is_diff: bool = False
     xs: list = field(default_factory=list, compare=False, hash=False, repr=False)
     ys: list = field(default_factory=list, compare=False, hash=False, repr=False)
     
@@ -27,11 +25,6 @@ class Trace:
         """
         label = self.name if self.name else self.entity
         
-        if self.is_cumsum:
-            label += ".cumsum"
-        if self.is_diff:
-            label += ".diff"
-
         return label + f" ({self.unit})"
     
 
