@@ -183,15 +183,17 @@ if __name__ == "__main__":
         def set_one_day():
             st.session_state.start_date = st.session_state.stop_date - dt.timedelta(days=1)
                 
-        cols = st.columns([3, 3, 1, 1, 1, 1, 3, 3])
-        cols[0].date_input("start date", key="start_date")
-        cols[1].time_input("start time", key="start_time")
-        cols[2].button("1Y", on_click=set_one_year, help="set start date one year before stop date")
-        cols[3].button("1M", on_click=set_one_month, help="set start date one month before stop date")
-        cols[4].button("1W", on_click=set_one_week, help="set start date one week before stop date")
-        cols[5].button("1D", on_click=set_one_day, help="set start date one day before stop date")
-        cols[6].date_input("stop date", key="stop_date")
-        cols[7].time_input("stop time", key="stop_time")    
+        with st.expander("Interval selection"):
+            cols = st.columns([2,2,1,2,2])
+            cols[0].date_input("start date", key="start_date")
+            cols[1].time_input("start time", key="start_time")
+            cols[3].date_input("stop date", key="stop_date")
+            cols[4].time_input("stop time", key="stop_time")    
+            cols = st.columns(4)
+            cols[0].button("1 year", on_click=set_one_year, help="set start date one year before stop date")
+            cols[1].button("1 month", on_click=set_one_month, help="set start date one month before stop date")
+            cols[2].button("1 week", on_click=set_one_week, help="set start date one week before stop date")
+            cols[3].button("1 day", on_click=set_one_day, help="set start date one day before stop date")
         
         # build query string
         RFC3339_FORMAT = '%Y-%m-%dT%H:%M:%S.00000000Z'
@@ -256,25 +258,27 @@ if __name__ == "__main__":
         # View traces plots
         st.subheader("View traces plots", divider="blue")
         
-        if upload_obj := st.file_uploader(label="upload traces", type="json", accept_multiple_files=False):
-            trace_dict_list = json.load(upload_obj, cls=JsonDec)["content"]
-            try:
-                for trace_dict in trace_dict_list:
-                    trace = Trace(**trace_dict)
-                    st.session_state.traces.append(trace)
-            except Exception as e:
-                st.error(f"Exception {e} while appending {trace=}!")
-                
         for fig in traces_handler.get_traces_figures():
             st.plotly_chart(fig, use_container_width=True)
         
-        st.download_button("download traces", data=traces_handler.get_traces_as_json(), 
-                        file_name="traces.json")
-        
+        with st.expander("Upload / download area"):
+            if upload_obj := st.file_uploader(label="upload traces", type="json", accept_multiple_files=False):
+                trace_dict_list = json.load(upload_obj, cls=JsonDec)["content"]
+                try:
+                    for trace_dict in trace_dict_list:
+                        trace = Trace(**trace_dict)
+                        st.session_state.traces.append(trace)
+                except Exception as e:
+                    st.error(f"Exception {e} while appending {trace=}!")
+                
+            st.download_button("download traces", data=traces_handler.get_traces_as_json(), 
+                            file_name="traces.json")
+            
         ############################################################################################
         # Inside streamlit_db_browser
-        st.subheader(f"Inside streamlit_db_browser", divider="blue")
-        "session_state:", st.session_state
+        st.subheader(f"Debug area", divider="blue")
+        with st.expander("session state"):
+            st.session_state
 
 
     except (Exception, KeyboardInterrupt) as error:
