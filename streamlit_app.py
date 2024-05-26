@@ -11,35 +11,22 @@ from influxdb import InfluxDBClient
     
 @dataclass
 class Trace:
-    """Entity time series (xs and ys) with meta data (name, unit,...)
-    """
     entity: str
     unit: str
-    name: str = ""
     line_mode: str = "lines"
-    xs: list = field(default_factory=list, compare=False, hash=False, repr=False)
-    ys: list = field(default_factory=list, compare=False, hash=False, repr=False)
-    
+    series: pd.Series = field(default_factory=pd.Series, compare=False, hash=False, repr=False)
+        
     def get_label(self) -> str:
         """Returns a trace label like 'garden temperature (°C)'
         """
-        label = self.name if self.name else self.entity
-        
-        return label + f" ({self.unit})"
-    
+        return f"{self.series.name} ({self.unit})"
+
 
 class TracesHandler():
     def __init__(self) -> None:
+        # store the actual traces in the session_state
         if "traces" not in st.session_state:
             st.session_state["traces"] = list()
-    
-    @staticmethod
-    def json_dumps() -> str:
-        pass
-    
-    @staticmethod
-    def json_loads(json_str) -> None:
-        pass
     
     @staticmethod
     def get_traces_names() -> list:
@@ -49,11 +36,8 @@ class TracesHandler():
         return names
         
     @staticmethod
-    def add_trace(df: pd.DataFrame) -> None:
-        if len(df):    
-            trace = Trace(entity=st.session_state["sel_entity_id"], unit=selected_unit,
-                          xs=df.values[:, 0], ys=df.values[:, 1])
-            st.session_state.traces.append(trace)
+    def add_trace(trace: Trace) -> None:
+        st.session_state.traces.append(trace)
     
     @staticmethod
     def get_traces_figures() -> list:
@@ -69,8 +53,8 @@ class TracesHandler():
             for idx, trace in enumerate(st.session_state.traces):
                 if trace.unit == unit:
                     name = f"{idx}. {trace.get_label()}"
-                    fig.add_trace(go.Scatter(x=trace.xs, y=trace.ys, mode=trace.line_mode, 
-                                                showlegend=True, name=name))
+                    fig.add_trace(go.Scatter(x=trace.series.index, y=trace.series.values, 
+                                             mode=trace.line_mode, showlegend=True, name=name))
             fig.update_layout(yaxis_title=unit)
             figures.append(fig)
         return figures
@@ -83,11 +67,6 @@ class TracesHandler():
             st.session_state.traces.pop(idx)
         except IndexError:
             pass
-        
-        
-    @staticmethod
-    def load_traces_from_json() -> None:
-        pass
     
     
     @staticmethod
@@ -202,32 +181,35 @@ if __name__ == "__main__":
         # query the data
         df = pd.DataFrame.from_records(client.query(qstr).get_points())
         if len(df):
-            df.columns = ["time", st.session_state["sel_entity_id"]]
+            df.time = pd.to_datetime(df.time)
+            series = df.set_index("time")["mean_value"]
+            series.name = st.session_state["sel_entity_id"]
             if st.button("add to traces"):
-                    traces_handler.add_trace(df)        
+                trace = Trace(entity=st.session_state["sel_entity_id"],
+                              unit=selected_unit, series=series)
+                traces_handler.add_trace(trace)        
             
-        ############################################################################################
-        # Preview data
-        if len(df):
-            with st.expander(f"Preview {len(df)} points of data"):
+            ############################################################################################
+            # Preview data
+            with st.expander(f"Preview {len(series)} points of data"):
                 list_col, plot_col = st.columns(2)
-                list_col.dataframe(df.set_index("time").head(8))
-                plot_col.scatter_chart(df.set_index("time"))
+                list_col.dataframe(series.head(8))
+                plot_col.scatter_chart(series)
 
         ############################################################################################
         # Edit traces
         st.subheader("Edit traces", divider="blue")        
         
         ecol1, ecol2 = st.columns(2)
-        
         sel_trace_str = ecol1.selectbox("select trace for editing", 
                                             traces_handler.get_traces_names())
+
         if sel_trace_str is not None:
             sel_trace_idx = int(sel_trace_str.split(".")[0])
             sel_trace = st.session_state.traces[sel_trace_idx]
-            st.session_state.sel_trace_name = sel_trace.name
+            st.session_state.sel_trace_name = sel_trace.series.name
             def edit_trace_name():
-                sel_trace.name = st.session_state.sel_trace_name
+                sel_trace.series.name = st.session_state.sel_trace_name
             
             ecol2.text_input("edit trace name", key="sel_trace_name", on_change=edit_trace_name)
             
@@ -246,6 +228,7 @@ if __name__ == "__main__":
                 st.rerun()
             if dcol2.button("delete all traces", type="primary"):
                 st.session_state["traces"] = list()
+                st.rerun()
 
         ############################################################################################
         # View traces plots
