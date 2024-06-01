@@ -3,9 +3,6 @@ This web-app allows browsing and exploring data from __[InfluxDB](https://www.in
 ![](imgs/app_screenshot.png)
 
 # ToDos
-- cumsum + diff function
-  - leads to different units like `kW *time`, `kW /time`
-- plotly selector `lines`, `markers` or `lines+markers`
 - clear database from entities that are discontinoued
 
 # Moving docker to the Raspi 

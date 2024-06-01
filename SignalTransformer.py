@@ -31,18 +31,16 @@ class SignalTransformers():
     def resample(input_series: pd.Series, interval_hours: int = 24, aggregate_sum: bool = False, fill_na: bool = False) -> pd.Series:
         """Resample to a given interval
         """
-        resampler = input_series.resample(dt.timedelta(hours=interval_hours))
-        name_adder = f".res{int(interval_hours)}h_"
-                
+        resampler = input_series.resample(dt.timedelta(hours=interval_hours))                
         if aggregate_sum:
             output_series = resampler.sum()
-            output_series.name += name_adder + "sum"
-        elif fill_na:
-            output_series =  resampler.mean().ffill()
-            output_series.name += name_adder + "mean_fill"
+            output_series.name += f".sum{int(interval_hours)}h"
         else:
-            output_series =  resampler.mean()
-            output_series.name += name_adder + "mean"
+            if fill_na:
+                output_series =  resampler.mean().ffill()
+            else:
+                output_series =  resampler.mean()
+            output_series.name += f".mean{int(interval_hours)}h"
         return output_series
     
     
