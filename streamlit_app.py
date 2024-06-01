@@ -3,10 +3,12 @@ import pandas as pd
 import datetime as dt
 import streamlit as st
 import plotly.graph_objects as go
+from copy import deepcopy
 from json_encoder_decoder import JsonEnc, JsonDec
 from dataclasses import dataclass, field, asdict
 from ruamel.yaml import YAML
 from influxdb import InfluxDBClient
+from SignalTransformer import SignalTransformersInterface
     
     
 @dataclass
@@ -82,6 +84,7 @@ class TracesHandler():
 if __name__ == "__main__":
     
     traces_handler = TracesHandler()
+    transf_interface = SignalTransformersInterface()
 
     # streamlit app start
     st.header("Database explorer", divider="red")
@@ -200,7 +203,7 @@ if __name__ == "__main__":
         # Edit traces
         st.subheader("Edit traces", divider="blue")        
         
-        ecol1, ecol2 = st.columns(2)
+        ecol1, ecol2 = st.columns([2, 3])
         sel_trace_str = ecol1.selectbox("select trace for editing", 
                                             traces_handler.get_traces_names())
 
@@ -221,6 +224,45 @@ if __name__ == "__main__":
             ecol2.selectbox("line mode", options=line_modes.keys(), key="line_mode", 
                             index=line_modes[sel_trace.line_mode],
                             on_change=edit_line_mode)
+            
+            ############################################################################################
+            # Apply transformations
+            with ecol2.expander("Apply trace transformation"):
+                TF_PARAM_KEY = "tf_param_"
+                def remove_tf_params_from_session_state():
+                    for key in [key for key in st.session_state.keys() if key.startswith(TF_PARAM_KEY)]:
+                        del st.session_state[key]
+                        
+                def get_tf_params_from_session_state() -> dict:
+                    params = dict()
+                    for key, val in st.session_state.items():
+                        if key.startswith(TF_PARAM_KEY):
+                            params[key.replace(TF_PARAM_KEY, "")] = val
+                    return params
+                        
+                st.selectbox("transformer function", options=transf_interface.get_transformers_names(),
+                                key="transformer_name", on_change=remove_tf_params_from_session_state)
+                
+                params = transf_interface.get_transformer_parameters(st.session_state.transformer_name)
+                for param_name, param_type, param_default in params:
+                    session_key = TF_PARAM_KEY + param_name
+                    if session_key not in st.session_state:
+                        st.session_state[session_key] = param_type()
+                        if param_default is not None:
+                            st.session_state[session_key] = param_default
+                    
+                    if param_type == bool:
+                        st.checkbox(param_name, key=session_key)
+                    elif param_type == int:
+                        st.number_input(param_name, step=1, key=session_key)
+
+                if st.button("apply transformer"):
+                    new_trace = deepcopy(sel_trace)
+                    transformer = transf_interface.get_transformer(st.session_state.transformer_name)
+                    trans_params = {"input_series": new_trace.series}
+                    trans_params.update(get_tf_params_from_session_state())
+                    new_trace.series = transformer(**trans_params)
+                    traces_handler.add_trace(new_trace)
             
             dcol1, dcol2 = ecol2.columns(2)
             if dcol1.button("delete selected trace", type="primary"):
