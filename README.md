@@ -3,7 +3,8 @@ This web-app allows browsing and exploring data from __[InfluxDB](https://www.in
 ![](imgs/app_screenshot.png)
 
 # ToDos
-- clear database from entities that are discontinoued
+- resample doesn't work as intended: 24h resample is not per day (example Mini Milage)
+- filter transformer would be great
 
 # Moving docker to the Raspi 
 __Prerequisite__: Install Docker on the Raspi acc. to: [Docker installation on Debian](https://docs.docker.com/engine/install/debian/)
