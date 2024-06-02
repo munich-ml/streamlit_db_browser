@@ -176,7 +176,7 @@ if __name__ == "__main__":
         stop_string = dt.datetime.combine(st.session_state["stop_date"], st.session_state["stop_time"]).strftime(RFC3339_FORMAT)
         
         selected_unit = next(iter(entities[entities["entity_id"] == st.session_state["sel_entity_id"]]["unit"]))
-        qstr = f"""SELECT mean_value FROM "{selected_unit}" WHERE entity_id = '{st.session_state["sel_entity_id"]}' 
+        qstr = f"""SELECT value, mean_value FROM "{selected_unit}" WHERE entity_id = '{st.session_state["sel_entity_id"]}' 
                 AND time >= '{start_string}'
                 AND time < '{stop_string}'"""
         st.code(qstr, language="sql")    
@@ -185,7 +185,9 @@ if __name__ == "__main__":
         df = pd.DataFrame.from_records(client.query(qstr).get_points())
         if len(df):
             df.time = pd.to_datetime(df.time)
-            series = df.set_index("time")["mean_value"]
+            df = df.set_index("time")
+            df = df.dropna(axis=1)   # either value or mean_value column should be None
+            series = df[df.columns[0]]  # the df should have just one column at this point (value or mean_value)
             series.name = st.session_state["sel_entity_id"]
             if st.button("add to traces"):
                 trace = Trace(entity=st.session_state["sel_entity_id"],
